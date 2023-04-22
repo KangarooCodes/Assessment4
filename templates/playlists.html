@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1 class="mb-3">See all the playlists!</h1>
+
+{% for message in get_flashed_messages() %}
+<h4 class="text-success">{{ message }}</h4>
+{% endfor %}
+
+<table class="table">
+  <thead class="table-primary">
+    <th>Playlist Name</th>
+    <th>Description</th>
+  </thead>
+
+  <tbody class="table-secondary">
+    {% for play in all_playlists %}
+    <tr> 
+      <td>
+          <a href="/playlists/{{play.id}}">{{ play.name }}</a>
+      </td>
+
+      <td>
+        {% if play.description %}
+          {{play.description}}      
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+
+  </tbody>
+</table>
+
+<p><a class="btn btn-primary" href="/playlists/add">create a new playlist</a></p>
+
+{% block error %}{% endblock %}
+{% endblock %}

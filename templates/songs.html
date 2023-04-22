@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1 class="mb-3">Check out the Songs!</h1>
+
+{% for message in get_flashed_messages() %}
+<h4 class="text-success">{{ message }}</h4>
+{% endfor %}
+
+<table class="table">
+  <thead class="table-primary">
+    <th>Song Name</th>
+    <th>Artist</th>
+  </thead>
+
+  <tbody class="table-secondary">
+    {% for song in all_songs %}
+    <tr> 
+      <td>
+          <a href="/songs/{{song.id}}" class="text-info">{{ song.title }}</a>
+      </td>
+
+      <td>
+        {{song.artist}}
+      </td>
+    </tr>
+    {% endfor %}
+
+  </tbody>
+</table>
+
+<p><a class="btn btn-primary" href="/songs/add">add a new song</a></p>
+
+{% block error %}{% endblock %}
+{% endblock %}

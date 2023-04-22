@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="jumbotron">
+  <h5>Currently viewing:</h5>
+  <h1 class="text-primary mt-5">{{ playlist.name }}!</h1>
+  <p class="lead">&ndash; {{ playlist.description }}</p>
+
+  <a href="/playlists/{{playlist.id}}/add-song" type="submit" class="btn btn-outline-info mt-5">Add A Song To This Playlist!</a>
+</div>
+
+
+<ul>
+  All Songs currently in this Playlist:
+        <!-- Loops over Songs to find matching song/playlist pairs -->
+  {% for x in all_songs %}
+
+        <!-- Makes sure that current playlist doesn't show songs from other playlists
+             by checking the playlist id from database -->
+    {% if playlist.id == all_playlist_songs[loop.index-1].playlist_id %}
+    
+        <!-- Prints Song if 'playlist_songs' database has matching playlist/song IDs -->
+      {% if x.id == all_playlist_songs[loop.index-1].song_id %}    
+
+      <li>
+        <a href="/songs/{{all_playlist_songs[loop.index-1].song_id}}" class="text-success">
+          {{ all_songs[loop.index-1].title }}
+        </a>
+      </li>
+      
+      {% endif %} 
+    {% endif %}  
+  {% endfor %}
+
+</ul>
+
+{% block error %}{% endblock %}
+{% endblock %}

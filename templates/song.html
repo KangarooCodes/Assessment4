@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="jumbotron">
+  <h5>Currently viewing:</h5>
+  <h1 class="text-primary mt-5">{{ song.title }}</h1>
+  <p class="lead">&ndash; {{ song.artist }}</p>
+</div>
+
+<ul>
+  This Song belongs to the followings Playlists:
+        <!-- Loops over Song() model to find matching song/playlist pairs -->
+  {% for x in all_playlists %}
+    
+        <!-- Prints Song if 'playlist_songs' database has matching palylist/song IDs -->
+      {% if x.id == all_playlist_songs[loop.index-1].playlist_id %}    
+
+      <li>
+        <a href="/playlists/{{all_playlist_songs[loop.index-1].playlist_id}}" class="text-success">
+          {{ all_playlists[loop.index-1].name }}
+        </a>
+      </li>
+      
+    {% endif %}  
+  {% endfor %}
+
+</ul>
+
+{% block error %}{% endblock %}
+{% endblock %}
