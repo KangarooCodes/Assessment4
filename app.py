@@ -62,6 +62,7 @@ def show_playlist(playlist_id):
     all_playlists = Playlist.query.all()
     all_songs = Song.query.all()
     all_playlist_songs = PlaylistSong.query.all()
+    exist_checker = []
     
     if len(all_playlists) > 0:
         
@@ -69,16 +70,19 @@ def show_playlist(playlist_id):
             if list.id == playlist_id:
                 x = all_playlists.index(list)
                 playlist = all_playlists[x]
-            else:
-                flash(f'''No Playlist with an ID of {playlist_id} exists, please click on a playlist to view
-                (If there are none, click 'CREATE A NEW PLAYLIST' to create one)''')
-                return redirect("/playlists")
-        
-        idx = 0 
-        return render_template("playlist.html",
+                idx = 0 
+                exist_checker.append(list.id)
+                #raise
+                return render_template("playlist.html",
                            playlist=playlist,all_songs=all_songs,
                            all_playlist_songs=all_playlist_songs,idx=idx)
+        
+        if playlist_id not in exist_checker:
+            flash(f'''No Playlist with an ID of {playlist_id} exists, please click on a playlist to view
+                (If there are none, click 'CREATE A NEW PLAYLIST' to create one)''')
+            return redirect("/playlists")
     else:
+        raise
         flash(f'''No Playlist with an ID of {playlist_id} exists, please click on a playlist to view
         (If there are none, click 'CREATE A NEW PLAYLIST' to create one)''')
         return redirect("/playlists")
