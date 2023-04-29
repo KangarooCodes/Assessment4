@@ -72,7 +72,6 @@ def show_playlist(playlist_id):
                 playlist = all_playlists[x]
                 idx = 0 
                 exist_checker.append(list.id)
-                #raise
                 return render_template("playlist.html",
                            playlist=playlist,all_songs=all_songs,
                            all_playlist_songs=all_playlist_songs,idx=idx)
@@ -82,7 +81,6 @@ def show_playlist(playlist_id):
                 (If there are none, click 'CREATE A NEW PLAYLIST' to create one)''')
             return redirect("/playlists")
     else:
-        raise
         flash(f'''No Playlist with an ID of {playlist_id} exists, please click on a playlist to view
         (If there are none, click 'CREATE A NEW PLAYLIST' to create one)''')
         return redirect("/playlists")
@@ -161,20 +159,22 @@ def show_song(song_id):
     all_songs = Song.query.all()
     all_playlists = Playlist.query.all()
     all_playlist_songs = PlaylistSong.query.all()
+    exist_checker = []
     
     if len(all_songs) > 0:
-        for x in all_songs:
-            if x.id == song_id:
-                x = all_songs.index(x)
+        for song in all_songs:
+            if song.id == song_id:
+                x = all_songs.index(song)
                 song = all_songs[x]
-            else:
-                flash(f'''No Song with an ID of {song_id} exists, please click on a song to view.
-                    (If there are none, click 'ADD A NEW SONG' to create one)''')
-                return redirect("/songs")            
+                exist_checker.append(song.id)                
+                return render_template("song.html",song=song,all_playlists=all_playlists,
+                               all_playlist_songs=all_playlist_songs)           
             
+        if song_id not in exist_checker:
+            flash(f'''No Playlist with an ID of {song_id} exists, please click on a playlist to view
+                (If there are none, click 'CREATE A NEW PLAYLIST' to create one)''')
+            return redirect("/playlists")
         
-        return render_template("song.html",song=song,all_playlists=all_playlists,
-                               all_playlist_songs=all_playlist_songs)
     else:
         flash(f'''No Song with an ID of {song_id} exists, please click on a song to view.
               (If there are none, click 'ADD A NEW SONG' to create one)''')
