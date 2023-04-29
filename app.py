@@ -1,8 +1,5 @@
 from flask import Flask, redirect, render_template, flash, request
 from flask_debugtoolbar import DebugToolbarExtension
-
-
-
 from models import db, connect_db, Playlist, Song, PlaylistSong
 from forms import NewSongForPlaylistForm, SongForm, PlaylistForm
 
@@ -14,7 +11,7 @@ app.config['SQLALCHEMY_ECHO'] = True
 connect_db(app)
 db.create_all()
 
-app.config['SECRET_KEY'] = "I'LL NEVER TELL!!"
+app.config['SECRET_KEY'] = "joeyssecret"
 
 # Having the Debug Toolbar show redirects explicitly is often useful;
 # however, if you want to turn it off, you can uncomment this line:
@@ -24,10 +21,11 @@ app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 debug = DebugToolbarExtension(app)
 
 
+
 @app.route("/")
 def root():
     """Homepage: redirect to /playlists."""
-
+    
     return redirect("/playlists")
 
 
@@ -42,6 +40,7 @@ def show_all_playlists():
     form = PlaylistForm()
     all_playlists = Playlist.query.all()
     descrip = form.description.data
+    
     
     for play in all_playlists:
         print('***********************')
@@ -58,21 +57,31 @@ def show_all_playlists():
 @app.route("/playlists/<int:playlist_id>")
 def show_playlist(playlist_id):
     """Show detail on specific playlist."""
-
+    
     # ADD THE NECESSARY CODE HERE FOR THIS ROUTE TO WORK
-    
     all_playlists = Playlist.query.all()
-    playlist = all_playlists[playlist_id-1]
     all_songs = Song.query.all()
-    song = all_songs[playlist_id-1]
     all_playlist_songs = PlaylistSong.query.all()
-    playlist_song = all_playlist_songs[playlist_id-1]
     
-    #raise
-    return render_template("playlist.html",
-                           playlist=playlist,song=song,playlist_song=playlist_song,
-                           all_playlists=all_playlists,all_songs=all_songs,
-                           all_playlist_songs=all_playlist_songs)
+    if len(all_playlists) > 0:
+        
+        for list in all_playlists:
+            if list.id == playlist_id:
+                x = all_playlists.index(list)
+                playlist = all_playlists[x]
+            else:
+                flash(f'''No Playlist with an ID of {playlist_id} exists, please click on a playlist to view
+                (If there are none, click 'CREATE A NEW PLAYLIST' to create one)''')
+                return redirect("/playlists")
+        
+        idx = 0 
+        return render_template("playlist.html",
+                           playlist=playlist,all_songs=all_songs,
+                           all_playlist_songs=all_playlist_songs,idx=idx)
+    else:
+        flash(f'''No Playlist with an ID of {playlist_id} exists, please click on a playlist to view
+        (If there are none, click 'CREATE A NEW PLAYLIST' to create one)''')
+        return redirect("/playlists")
     
 
 @app.route("/playlists/add", methods=["GET", "POST"])
@@ -90,7 +99,8 @@ def add_playlist():
     all_playlists = Playlist.query.all()
     name = form.name.data        
     description = form.description.data
-        
+    repeat_checker = []
+    
     if form.validate_on_submit():
         '''Update playlists table with user inputs of Name and Description'''
         
@@ -102,13 +112,14 @@ def add_playlist():
             db.session.commit()
             flash(f"Playlist created with name of: '{name}' !")                
             return redirect('/playlists')
-        else:       # Below makes sure any playlist name is not added twice
-            for play in all_playlists:
-                repeat_checker = []
-                repeat_checker.append(play.name)
-                if play.name not in repeat_checker:
+        else:   # Below makes sure any playlist name is not added twice
+            
+            for play in all_playlists:                
+                repeat_checker.append(play.name)                
+                if new_playlist.name not in repeat_checker:
                     db.session.add(new_playlist)
                     db.session.commit()
+                    repeat_checker = []
                     flash(f"Playlist created with name of: '{name}' !")                
                     return redirect('/playlists')
                 else:
@@ -117,8 +128,6 @@ def add_playlist():
    
     else:
         # Shows when GET request instead of POST
-        # raise
-        print("** GET REQUEST **")
         return render_template("new_playlist.html", form=form)
     
 
@@ -146,17 +155,26 @@ def show_song(song_id):
 
     # ADD THE NECESSARY CODE HERE FOR THIS ROUTE TO WORK
     all_songs = Song.query.all()
-    song = all_songs[song_id-1]
     all_playlists = Playlist.query.all()
-    playlist = all_playlists[song_id-1]
-    all_songs = Song.query.all()
     all_playlist_songs = PlaylistSong.query.all()
-    playlist_song = all_playlist_songs[song_id-1]
-
-    # raise
-    return render_template("song.html",song=song,playlist=playlist,
-                           playlist_song=playlist_song,all_playlists=all_playlists,
-                           all_songs=all_songs,all_playlist_songs=all_playlist_songs)
+    
+    if len(all_songs) > 0:
+        for x in all_songs:
+            if x.id == song_id:
+                x = all_songs.index(x)
+                song = all_songs[x]
+            else:
+                flash(f'''No Song with an ID of {song_id} exists, please click on a song to view.
+                    (If there are none, click 'ADD A NEW SONG' to create one)''')
+                return redirect("/songs")            
+            
+        
+        return render_template("song.html",song=song,all_playlists=all_playlists,
+                               all_playlist_songs=all_playlist_songs)
+    else:
+        flash(f'''No Song with an ID of {song_id} exists, please click on a song to view.
+              (If there are none, click 'ADD A NEW SONG' to create one)''')
+        return redirect("/songs")
 
 
 @app.route("/songs/add", methods=["GET", "POST"])
@@ -174,12 +192,12 @@ def add_song():
     all_songs = Song.query.all()
     title = form.title.data        
     artist = form.artist.data
-    
+    repeat_checker = []
     
     if form.validate_on_submit():
         # Updated playlists table with user inputs of Name and Description
         
-        new_song = Song(title=title, artist = artist)
+        new_song = Song(title=title, artist=artist)
         
         # Adds new playlist to database 'playlists'
         if len(all_songs) == 0:
@@ -189,21 +207,21 @@ def add_song():
             return redirect('/songs')
         else:       # Below makes sure any song is not added twice
             for song in all_songs:
-                repeat_checker = []
                 repeat_checker.append(song.title)
-                if song.title in repeat_checker:
-                    flash(f"Song Already Exists!")                         
-                    return render_template("new_song.html", form=form)
-                else:    
+                if new_song.title not in repeat_checker:
                     db.session.add(new_song)
-                    db.session.commit()          
+                    db.session.commit()      
+                    repeat_checker = []    
                     flash(f"Song Added with name of: '{title}' !") 
                     return redirect('/songs')
-   
+                else:
+                    
+                    flash(f"Song Already Exists!")                         
+                    return render_template("new_song.html", form=form)
     else:
         # Shows when GET request instead of POST
-        # raise
         print("** GET REQUEST **")
+        #raise
         return render_template("new_song.html", form=form)
 
 @app.route("/playlists/<int:playlist_id>/add-song", methods=["GET", "POST"])
@@ -214,29 +232,30 @@ def add_song_to_playlist(playlist_id):
 
     # THE SOLUTION TO THIS IS IN A HINT IN THE ASSESSMENT INSTRUCTIONS
     
-    form = NewSongForPlaylistForm()
-    
-    playlist = Playlist.query.get_or_404(playlist_id)
-    
+    form = NewSongForPlaylistForm()    
+    playlist = Playlist.query.get_or_404(playlist_id)    
     playlist_songs = PlaylistSong.query.all()
-    playlist_song_id = PlaylistSong.query[playlist_id-1].song_id
-    #raise
-    form.song.choices = (db.session.query(Song.id, Song.title)
-                      .filter(Song.id != playlist_song_id)
-                      .all())  
-    #raise
-    song = form.song.data
-    # Restrict form to songs not already on this playlist
-    added_song = Song.query.get(song)
+    playlist_song = PlaylistSong(song_id=form.song.data, playlist_id=playlist_id)
+    songs = Song().query.all()
     
-    # raise
+    form.song.choices = (db.session.query(Song.id, Song.title).all())  
+    
     if form.validate_on_submit():
-
-        playlist_song = PlaylistSong(song_id=form.song.data, playlist_id=playlist_id)
-        
-        
-        db.session.add(playlist_song)
-        db.session.commit()
-        return redirect(f"/playlists/{playlist_id}")
     
-    return render_template("add_song_to_playlist.html",playlist=playlist,form=form)
+        if len(playlist_songs) > 0:
+            for x in playlist_songs:
+                playlist_song_id = x.song_id
+                form.song.choices = (db.session.query(Song.id, Song.title).filter(Song.id != playlist_song_id).all())
+            db.session.add(playlist_song)   
+            db.session.commit()
+            return redirect(f"/playlists/{playlist_id}")        
+        else:
+            db.session.add(playlist_song)
+            db.session.commit()            
+            return redirect(f"/playlists/{playlist_id}")
+    else:
+        # Do not show song as an option to add, if it is already in playlist
+        for x in playlist_songs:
+            playlist_song_id = x.song_id
+            form.song.choices = (db.session.query(Song.id, Song.title).filter(Song.id != playlist_song_id).all())
+        return render_template("add_song_to_playlist.html",playlist=playlist,form=form)
