@@ -59,27 +59,31 @@ def show_playlist(playlist_id):
     """Show detail on specific playlist."""
     
     # ADD THE NECESSARY CODE HERE FOR THIS ROUTE TO WORK
+    idx = 0
     all_playlists = Playlist.query.all()
     all_songs = Song.query.all()
     all_playlist_songs = PlaylistSong.query.all()
     exist_checker = []
+    compatible = []
     
-    if len(all_playlists) > 0:
-        
-        for list in all_playlists:
-            if list.id == playlist_id:
-                x = all_playlists.index(list)
-                playlist = all_playlists[x]
-                idx = 0 
-                exist_checker.append(list.id)
-                return render_template("playlist.html",
-                           playlist=playlist,all_songs=all_songs,
-                           all_playlist_songs=all_playlist_songs,idx=idx)
-        
+    while len(all_playlists) > 0:
+        for i in all_playlists:
+            exist_checker.append(i.id)
+            
         if playlist_id not in exist_checker:
             flash(f'''No Playlist with an ID of {playlist_id} exists, please click on a playlist to view
                 (If there are none, click 'CREATE A NEW PLAYLIST' to create one)''')
             return redirect("/playlists")
+        
+        else: 
+            for list in all_playlists:
+                if list.id==playlist_id:
+                    playlist = list
+                    return render_template("playlist.html",playlist_id=playlist_id,
+                        playlist=playlist,all_songs=all_songs,compatible=compatible,
+                        all_playlist_songs=all_playlist_songs,idx=idx,test=exist_checker)
+                        
+        
     else:
         flash(f'''No Playlist with an ID of {playlist_id} exists, please click on a playlist to view
         (If there are none, click 'CREATE A NEW PLAYLIST' to create one)''')
@@ -160,20 +164,27 @@ def show_song(song_id):
     all_playlists = Playlist.query.all()
     all_playlist_songs = PlaylistSong.query.all()
     exist_checker = []
-    
+    playlist_checker = []
+
     if len(all_songs) > 0:
         for song in all_songs:
+            exist_checker.append(song.id)
             if song.id == song_id:
-                x = all_songs.index(song)
-                song = all_songs[x]
-                exist_checker.append(song.id)                
+                song = song
+                for x in all_playlist_songs:
+                    if x.rel_song.id == song_id:
+                        playlist_checker.append(x.rel_play.id)
+                    for x in all_playlists:
+                        if x.id in playlist_checker:
+                            playlist = x
+                #raise
                 return render_template("song.html",song=song,all_playlists=all_playlists,
-                               all_playlist_songs=all_playlist_songs)           
+                               all_playlist_songs=all_playlist_songs, playlist=playlist)           
             
         if song_id not in exist_checker:
-            flash(f'''No Playlist with an ID of {song_id} exists, please click on a playlist to view
-                (If there are none, click 'CREATE A NEW PLAYLIST' to create one)''')
-            return redirect("/playlists")
+            flash(f'''No song with an ID of {song_id} exists, please click on a song to view
+                (If there are none, click 'CREATE A NEW PLAYSONGLIST' to create one)''')
+            return redirect("/songs")
         
     else:
         flash(f'''No Song with an ID of {song_id} exists, please click on a song to view.
@@ -240,26 +251,39 @@ def add_song_to_playlist(playlist_id):
     playlist = Playlist.query.get_or_404(playlist_id)    
     playlist_songs = PlaylistSong.query.all()
     playlist_song = PlaylistSong(song_id=form.song.data, playlist_id=playlist_id)
-    songs = Song().query.all()
+    all_songs = Song.query.all()
     
-    form.song.choices = (db.session.query(Song.id, Song.title).all())  
+
+    bothList = []
+
+    bothList.append(db.session.query(PlaylistSong.playlist_id,PlaylistSong.song_id).all())
+
+    both = bothList[0]
+    hide_song = []
+    final = []
+    
+    for x in both:
+        if x[0] == playlist_id:
+            hide_song.append(x[1])
+    
+    for song in all_songs:
+        if song.id not in hide_song:
+            final.append((song.id,song.title))
+    
+    # Choices are now all songs not currently in currently viewed playlist  
+    form.song.choices = (final)
     
     if form.validate_on_submit():
-    
+        
         if len(playlist_songs) > 0:
-            for x in playlist_songs:
-                playlist_song_id = x.song_id
-                form.song.choices = (db.session.query(Song.id, Song.title).filter(Song.id != playlist_song_id).all())
-            db.session.add(playlist_song)   
-            db.session.commit()
+            for x in playlist_songs:   
+                db.session.add(playlist_song)  
+                db.session.commit()
             return redirect(f"/playlists/{playlist_id}")        
         else:
             db.session.add(playlist_song)
             db.session.commit()            
             return redirect(f"/playlists/{playlist_id}")
-    else:
-        # Do not show song as an option to add, if it is already in playlist
+    else:       
         for x in playlist_songs:
-            playlist_song_id = x.song_id
-            form.song.choices = (db.session.query(Song.id, Song.title).filter(Song.id != playlist_song_id).all())
-        return render_template("add_song_to_playlist.html",playlist=playlist,form=form)
+            return render_template("add_song_to_playlist.html",playlist=playlist,form=form)

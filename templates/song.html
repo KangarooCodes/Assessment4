@@ -10,22 +10,12 @@
 
 <ul>
   This Song belongs to the followings Playlists:
-        <!-- Loops over Song() model to find matching song/playlist pairs -->
-  {% for x in all_playlists %}
-    
-        <!-- Prints Song if 'playlist_songs' database has matching palylist/song IDs -->
-      {% if all_playlist_songs[loop.index-1] %}
-        {% if x.id == all_playlist_songs[loop.index-1].playlist_id %}    
-
+          
       <li>
-        <a href="/playlists/{{all_playlist_songs[loop.index-1].playlist_id}}" class="text-success">
-          {{ all_playlists[loop.index-1].name }}
+        <a href="/playlists/{{playlist.id}}" class="text-success">
+          {{ playlist.name }}
         </a>
       </li>
-
-      {% endif %}
-    {% endif %}  
-  {% endfor %}
 
 </ul>
 

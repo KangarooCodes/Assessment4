@@ -14,26 +14,16 @@
 <ul>
   All Songs currently in this Playlist:
         <!-- Loops over Songs to find matching song/playlist pairs -->
-        {% set idx = {'value': 0} %}
-  {% for x in all_songs %}
-
-        <!-- Makes sure that current playlist doesn't show songs from other playlists
-             by checking the playlist id from database -->
-    {% if all_playlist_songs[loop.index-1] %}
-      {% if playlist.id == all_playlist_songs[idx.value].playlist_id %}
-    
-        <!-- Prints Song if 'playlist_songs' database has matching playlist/song IDs -->
-      {% if x.id == all_playlist_songs[loop.index-1].song_id %}    
+  {% for x in all_playlist_songs %}
+    {% if playlist_id == x.rel_play.id %}
 
       <li>
-        <a href="/songs/{{all_playlist_songs[loop.index-1].song_id}}" class="text-success">
-          {{ all_songs[loop.index-1].title }}
-        </a>
+        <a href="/songs/{{x.rel_song.id}}" class="text-success">
+          {{ x.rel_song.title }}
+        </a>        
       </li>
-        {% if idx.update({'value': (idx.value + 1)}) %} {% endif %}
-       {% endif %}
-      {% endif %} 
-    {% endif %}  
+
+      {% endif %}
   {% endfor %}
 
 </ul>

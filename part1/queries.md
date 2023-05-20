@@ -60,7 +60,7 @@ Using the `movies_db` database, write the correct SQL queries for each of these 
         JOIN stars s
         ON r.star_id=s.id
         WHERE rating='G'
-        GROUP BY s.first_name, s.last_name;
+        GROUP BY s.first_name, s.last_name, s.id;
 
 10. The first and last names of every star along with the number of movies they have been in, in descending order by the number of movies. (Similar to #9, make sure that two different actors with the same name are considered separately).
 
@@ -70,7 +70,7 @@ Using the `movies_db` database, write the correct SQL queries for each of these 
         ON m.id=r.movie_id
         JOIN stars s
         ON r.star_id=s.id
-        GROUP BY s.first_name, s.last_name
+        GROUP BY s.first_name, s.last_name, s.id
         ORDER BY Count(*) desc;
 
 
