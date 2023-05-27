@@ -9,13 +9,23 @@
 </div>
 
 <ul>
-  This Song belongs to the followings Playlists:
+  <div class="h4">This Song belongs to the followings Playlists:</div>
+
+  {% for x in show_playlist %}
           
       <li>
-        <a href="/playlists/{{playlist.id}}" class="text-success">
-          {{ playlist.name }}
+        <a href="/playlists/{{x.id}}" class="text-success">
+          {{ x.name }}
         </a>
       </li>
+      {% else %}
+      <p>
+        <a href="/playlists" class="text-warning">
+          -- NONE --
+          (Click Here to View Playlists!)
+        </a>
+      </p>
+  {% endfor %}
 
 </ul>
 

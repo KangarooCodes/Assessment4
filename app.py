@@ -165,6 +165,7 @@ def show_song(song_id):
     all_playlist_songs = PlaylistSong.query.all()
     exist_checker = []
     playlist_checker = []
+    show_playlist = []
 
     if len(all_songs) > 0:
         for song in all_songs:
@@ -174,12 +175,11 @@ def show_song(song_id):
                 for x in all_playlist_songs:
                     if x.rel_song.id == song_id:
                         playlist_checker.append(x.rel_play.id)
-                    for x in all_playlists:
-                        if x.id in playlist_checker:
-                            playlist = x
-                #raise
-                return render_template("song.html",song=song,all_playlists=all_playlists,
-                               all_playlist_songs=all_playlist_songs, playlist=playlist)           
+                for y in all_playlists:
+                    if y.id in playlist_checker:
+                        show_playlist.append(y)
+                        
+                return render_template("song.html",song=song,show_playlist=show_playlist)           
             
         if song_id not in exist_checker:
             flash(f'''No song with an ID of {song_id} exists, please click on a song to view
